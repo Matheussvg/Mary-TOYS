@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fábrica Mary's Toys</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="stage" aria-label="Visão 3D da fábrica"></div>
+
+  <!-- HUD -->
+  <div id="crosshair" aria-hidden="true"></div>
+
+  <aside id="area-card" class="hud-panel" aria-live="polite">
+    <span id="area-dept" class="chip">Área externa</span>
+    <h2 id="area-name">Mary's Toys</h2>
+    <p id="area-people">Siga pela escadaria até a entrada principal</p>
+    <p id="area-size" class="mono">Fábrica: 120 × 90 m</p>
+  </aside>
+
+  <div id="minimap-wrap" class="hud-panel">
+    <canvas id="minimap" aria-label="Minimapa da planta"></canvas>
+    <div class="map-foot"><span>Planta · norte ↑ fundos</span><span id="coords" class="mono"></span></div>
+  </div>
+
+  <ul id="keys" class="hud-panel" aria-label="Atalhos">
+    <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> andar</li>
+    <li><kbd>Shift</kbd> correr</li>
+    <li><kbd>Espaço</kbd> pular</li>
+    <li><kbd>C</kbd> agachar</li>
+    <li><kbd>T</kbd> telhado</li>
+    <li><kbd>V</kbd> vista aérea</li>
+    <li><kbd>M</kbd> minimapa</li>
+    <li><kbd>Esc</kbd> menu</li>
+  </ul>
+
+  <div id="toast" hidden></div>
+
+  <!-- Menu inicial / pausa -->
+  <div id="overlay">
+    <div class="sheet">
+      <header class="brand">
+        <p class="eyebrow">Planta 3D navegável</p>
+        <h1>Mary's Toys</h1>
+        <p class="lede">Fábrica de brinquedos em escala real: 120 × 90 m, com a Produção logo após a recepção e a Logística no fundo, junto às docas.</p>
+      </header>
+
+      <div class="cols">
+        <section class="howto">
+          <h2>Como andar</h2>
+          <dl>
+            <div><dt>Olhar</dt><dd>Mouse (ou arraste com o botão pressionado)</dd></div>
+            <div><dt>Andar</dt><dd>W A S D ou setas · Shift corre</dd></div>
+            <div><dt>Pular / agachar</dt><dd>Espaço · C</dd></div>
+            <div><dt>Telhado</dt><dd>T mostra ou oculta</dd></div>
+            <div><dt>Vista aérea</dt><dd>V alterna · arraste gira · roda dá zoom</dd></div>
+            <div><dt>Recomeçar</dt><dd>R volta para a calçada</dd></div>
+          </dl>
+          <p class="note">Portas de vidro, docas e cancela da portaria abrem sozinhas quando você chega perto.</p>
+          <button id="enter" type="button" disabled>Entrar na fábrica</button>
+          <p id="load-status" class="mono">Carregando…</p>
+        </section>
+
+        <section class="goto">
+          <h2>Ir direto para uma área</h2>
+          <div id="area-list"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bibliotecas -->
+  <script src="js/lib/three.min.js"></script>
+  <script>window.THREE || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+
+  <!-- Dados e núcleo -->
+  <script src="js/config/layout.js"></script>
+  <script src="js/core/textures.js"></script>
+  <script src="js/core/builder.js"></script>
+
+  <!-- Mundo -->
+  <script src="js/world/exterior.js"></script>
+  <script src="js/world/building.js"></script>
+  <script src="js/world/facade.js"></script>
+
+  <!-- Jogador e interface -->
+  <script src="js/player/player.js"></script>
+  <script src="js/ui/hud.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
