@@ -157,6 +157,123 @@ kbd {
   100% { opacity: 0; }
 }
 
+/* ---------- Computadores da TI ---------- */
+#crosshair, .hud-panel { transition: opacity 0.3s, visibility 0.3s; }
+body.pc-mode #crosshair, body.pc-mode .hud-panel, body.pc-mode #toast { opacity: 0; visibility: hidden; }
+body.pc-hover #crosshair {
+  width: 18px; height: 18px;
+  margin: -9px 0 0 -9px;
+  background: transparent;
+  border: 2px solid var(--cream);
+  opacity: 1;
+}
+
+#pc-hint {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + 120px);
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 7px 14px 7px 8px;
+  background: rgba(28, 18, 16, 0.9);
+  border: 1px solid var(--line);
+  border-left: 4px solid #2a4b9b;
+  border-radius: 6px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--cream);
+  font: 500 14px/1.25 var(--body);
+  text-align: left;
+  cursor: pointer;
+  animation: card-in 0.2s ease-out;
+}
+#pc-hint kbd { min-width: 26px; font-size: 14px; line-height: 24px; margin: 0; }
+#pc-hint b { display: block; font: 700 16px/1.1 var(--label); letter-spacing: 0.05em; text-transform: uppercase; }
+#pc-hint small { color: var(--muted); font-size: 13px; }
+body.drone #pc-hint, body.pc-mode #pc-hint { display: none; }
+
+/* SAP sobre a tela do monitor (posição calculada em js/ui/computer.js) */
+#pc-screen {
+  position: fixed;
+  z-index: 8;
+  overflow: hidden;
+  background: #173c32;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 0 60px rgba(140, 190, 255, 0.14);
+  animation: pc-on 0.45s ease-out;
+}
+#pc-screen.full { inset: 0 0 calc(64px + env(safe-area-inset-bottom, 0px)) 0; border-radius: 0; }
+#pc-screen iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #f6f7f4;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+#pc-screen.ready iframe { opacity: 1; }
+.pc-boot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  text-align: center;
+  color: #c0d0c7;
+  background: radial-gradient(circle at 20% 10%, #245849 0, #173c32 45%, #0f2a22 100%);
+  font: 500 16px/1.4 var(--body);
+}
+.pc-boot b { font: 700 34px/1 var(--label); color: #e2c784; }
+#pc-screen.ready .pc-boot { display: none; }
+@keyframes pc-on {
+  from { opacity: 0; filter: brightness(1.8); }
+  to { opacity: 1; filter: none; }
+}
+
+#pc-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  padding: 5px 5px 5px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: 600 14px/1.2 var(--label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+#pc-bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pc-exit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  font: 600 14px/1 var(--label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: var(--red);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  cursor: pointer;
+}
+#pc-exit:hover { background: #b81c22; }
+#pc-exit kbd { margin: 0; }
+
 /* ---------- Menu ---------- */
 #overlay {
   position: fixed;
@@ -268,6 +385,26 @@ dd { margin: 0; color: var(--muted); }
 .dept button:hover { background: rgba(244, 234, 210, 0.08); }
 .dept button:hover .m { color: var(--gold); }
 
+#go-sap {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(42, 75, 155, 0.35);
+  border: 1px solid #2a4b9b;
+  border-left: 4px solid #2a4b9b;
+  border-radius: 4px;
+  color: var(--cream);
+  font: 600 15px/1.25 var(--body);
+  text-align: left;
+  cursor: pointer;
+}
+#go-sap .m { font: 500 13px/1 var(--label); color: var(--muted); white-space: nowrap; }
+#go-sap:hover { background: rgba(42, 75, 155, 0.55); }
+
 button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 @media (max-width: 760px) {
@@ -278,5 +415,5 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #area-card.flip, #toast.show { animation: none; }
+  #area-card.flip, #toast.show, #pc-hint, #pc-screen { animation: none; }
 }

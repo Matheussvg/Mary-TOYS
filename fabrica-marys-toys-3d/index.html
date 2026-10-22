@@ -32,6 +32,7 @@
     <li><kbd>Shift</kbd> correr</li>
     <li><kbd>Espaço</kbd> pular</li>
     <li><kbd>C</kbd> agachar</li>
+    <li><kbd>E</kbd> usar PC</li>
     <li><kbd>T</kbd> telhado</li>
     <li><kbd>V</kbd> vista aérea</li>
     <li><kbd>M</kbd> minimapa</li>
@@ -39,6 +40,18 @@
   </ul>
 
   <div id="toast" hidden></div>
+
+  <!-- Computadores da TI: opção ao mirar na tela, SAP no monitor e barra para levantar -->
+  <button id="pc-hint" type="button" hidden>
+    <kbd>E</kbd><span><b>Clique para acessar o SAP</b><small id="pc-hint-name"></small></span>
+  </button>
+  <div id="pc-screen" hidden>
+    <div class="pc-boot"><b>✦ Mery’s Toys</b><span>Conectando ao SAP…</span></div>
+  </div>
+  <div id="pc-bar" hidden>
+    <span id="pc-bar-name"></span>
+    <button id="pc-exit" type="button">Levantar <kbd>Esc</kbd></button>
+  </div>
 
   <!-- Menu inicial / pausa -->
   <div id="overlay">
@@ -59,6 +72,7 @@
             <div><dt>Telhado</dt><dd>T mostra ou oculta</dd></div>
             <div><dt>Vista aérea</dt><dd>V alterna · arraste gira · roda dá zoom</dd></div>
             <div><dt>Recomeçar</dt><dd>R volta para a calçada</dd></div>
+            <div><dt>Computador</dt><dd>Na TI, mire na tela de um PC e clique (ou E) para abrir o SAP</dd></div>
           </dl>
           <p class="note">Portas de vidro, docas e cancela da portaria abrem sozinhas quando você chega perto.</p>
           <button id="enter" type="button" disabled>Entrar na fábrica</button>
@@ -68,6 +82,7 @@
         <section class="goto">
           <h2>Ir direto para uma área</h2>
           <div id="area-list"></div>
+          <button id="go-sap" type="button"><span>Sentar num PC da TI e abrir o SAP</span><span class="m">Desenvolvimento do Software</span></button>
         </section>
       </div>
     </div>
@@ -79,17 +94,24 @@
 
   <!-- Dados e núcleo -->
   <script src="js/config/layout.js"></script>
+  <script src="js/config/ti.js"></script>
   <script src="js/core/textures.js"></script>
   <script src="js/core/builder.js"></script>
+
+  <!-- Modelos 3D -->
+  <script src="js/models/screens.js"></script>
+  <script src="js/models/office.js"></script>
 
   <!-- Mundo -->
   <script src="js/world/exterior.js"></script>
   <script src="js/world/building.js"></script>
   <script src="js/world/facade.js"></script>
+  <script src="js/world/ti.js"></script>
 
   <!-- Jogador e interface -->
   <script src="js/player/player.js"></script>
   <script src="js/ui/hud.js"></script>
+  <script src="js/ui/computer.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

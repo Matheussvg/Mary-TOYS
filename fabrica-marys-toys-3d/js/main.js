@@ -65,6 +65,7 @@
   MT.buildExterior(scene);
   MT.buildBuilding(scene);
   MT.buildFacade(scene);
+  MT.buildTI(scene);
 
   // Reflexos suaves do céu (IBL) a partir de uma cena pequena com o mesmo degradê
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -75,6 +76,7 @@
   const player = new MT.Player(camera, renderer.domElement);
   player.teleport(MT.LAYOUT.spawn.x, MT.LAYOUT.spawn.z, MT.LAYOUT.spawn.yaw);
   const hud = new MT.HUD(player);
+  const pc = new MT.Computer(camera, player, renderer.domElement);
 
   // ---- menu / pausa ----
   const overlay = $('overlay');
@@ -97,6 +99,20 @@
     enterBtn.focus({ preventScroll: true });
   };
   enterBtn.addEventListener('click', start);
+  // Clicar na cena volta a prender o mouse (por exemplo, depois de sair do PC com Esc)
+  renderer.domElement.addEventListener('click', () => {
+    if (player.enabled && !player.locked && !player.drone.on && !pc.busy) player.lock();
+  });
+
+  // Atalho do menu: vai direto para o PC principal da TI e abre o SAP
+  const openSap = () => {
+    const c = MT.computers.find((k) => k.main) || MT.computers[0];
+    if (!c) return;
+    if (player.drone.on) setDrone(false);
+    overlay.hidden = true;
+    pc.openNow(c);
+  };
+  $('go-sap').addEventListener('click', openSap);
   player.onLockChange = (locked) => {
     document.body.classList.toggle('locked', locked);
     if (!locked && player.enabled && !suppressPause) pause();
@@ -135,7 +151,7 @@
   };
 
   addEventListener('keydown', (e) => {
-    if (e.repeat) return;
+    if (e.repeat || pc.busy) return; // no PC as teclas são do SAP
     if (e.code === 'Escape' && !player.locked && player.enabled) { pause(); return; }
     if (!player.enabled) {
       if (e.code === 'Enter') start();
@@ -160,6 +176,7 @@
   // Atalhos por endereço: index.html#aerea abre na vista aérea, #tour entra direto
   if (location.hash === '#aerea') { start(); setDrone(true); }
   else if (location.hash === '#tour') start();
+  else if (location.hash === '#sap') openSap();
   else if (location.hash.startsWith('#area-')) {
     const a = MT.LAYOUT.areas.find((x) => x.id === location.hash.slice(6));
     if (a) hud.onTeleport(a);
@@ -170,6 +187,7 @@
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    pc.onResize();
   });
 
   // ---- laço principal ----
@@ -178,9 +196,14 @@
   renderer.setAnimationLoop(() => {
     const dt = Math.min(clock.getDelta(), 0.05);
     t += dt;
-    player.update(dt, t);
+    if (pc.busy) pc.update(dt);
+    else {
+      player.update(dt, t);
+      pc.hoverCheck();
+    }
     for (const fn of MT.animators) fn(dt, player, t);
     hud.update();
-    renderer.render(scene, camera);
+    if (pc.state !== 'using' || pc.redraw) renderer.render(scene, camera);
+    pc.redraw = false;
   });
 })();

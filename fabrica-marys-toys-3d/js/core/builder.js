@@ -119,6 +119,54 @@
     seg(cur, to, base, base + height);
   };
 
+  /*
+   * Funde as malhas paradas de um grupo em uma malha por material (bem menos chamadas de desenho).
+   * Fica de fora o que tem userData.keep (telas, peças animadas) e tudo dentro dele.
+   */
+  MT.bake = function (root) {
+    root.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
+    const m = new THREE.Matrix4();
+    const buckets = new Map();
+    const baked = [];
+    const walk = (o) => {
+      if (o.userData.keep) return;
+      if (o.isMesh && !o.isInstancedMesh && !Array.isArray(o.material) && !o.children.length) {
+        const key = o.material.uuid + (o.castShadow ? '+c' : '') + (o.receiveShadow ? '+r' : '');
+        if (!buckets.has(key)) buckets.set(key, { mat: o.material, cast: o.castShadow, receive: o.receiveShadow, geos: [] });
+        const geo = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+        geo.applyMatrix4(m.multiplyMatrices(inv, o.matrixWorld));
+        buckets.get(key).geos.push(geo);
+        baked.push(o);
+      }
+      for (const c of o.children) walk(c);
+    };
+    walk(root);
+    for (const o of baked) o.parent.remove(o);
+    for (const b of buckets.values()) {
+      let n = 0;
+      for (const g of b.geos) n += g.attributes.position.count;
+      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+      let k = 0;
+      for (const g of b.geos) {
+        pos.set(g.attributes.position.array, k * 3);
+        if (g.attributes.normal) nor.set(g.attributes.normal.array, k * 3);
+        if (g.attributes.uv) uv.set(g.attributes.uv.array, k * 2);
+        k += g.attributes.position.count;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+      geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      geo.computeBoundingSphere();
+      const mesh = new THREE.Mesh(geo, b.mat);
+      mesh.castShadow = b.cast;
+      mesh.receiveShadow = b.receive;
+      root.add(mesh);
+    }
+    return root;
+  };
+
   // Escada: degraus como caixas (sobe na direção `dir`)
   MT.stairs = function (parent, o) {
     // o: { x, z, width, run, rise, steps, dir: '+z'|'-z'|'+x'|'-x', base, material }

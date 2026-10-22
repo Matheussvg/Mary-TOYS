@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: marys-toys
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: marys-toys-db
+          property: connectionString
+      - key: ADMIN_USER
+        value: adm
+      - key: ADMIN_PASS
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+
+databases:
+  - name: marys-toys-db
+    plan: free

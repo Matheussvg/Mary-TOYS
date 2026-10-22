@@ -1,0 +1,16 @@
+{
+  "name": "marys-toys",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simulador 3D da fábrica Mary's Toys com o SAP (ME22N + conferência) nos PCs da TI",
+  "main": "sap/server.js",
+  "scripts": {
+    "start": "node sap/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pg": "8.11.3"
+  }
+}
