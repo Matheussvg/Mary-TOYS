@@ -1,7 +1,8 @@
 /*
- * Jogador em primeira pessoa com física simples e realista:
+ * Jogador com física simples e realista:
  * gravidade 9,81 m/s², colisão cilindro × caixas, subida automática de degraus
  * de até 35 cm, pulo de ~0,8 m e corrida com Shift.
+ * Câmera em primeira pessoa; F alterna para terceira pessoa (atrás do personagem, sem atravessar paredes).
  */
 (function () {
   const MT = (window.MT = window.MT || {});
@@ -15,6 +16,8 @@
   const WALK = 3.0;
   const RUN = 6.2;
   const JUMP = 4.0;
+  const THIRD_DIST = 3.2; // distância da câmera em terceira pessoa
+  const THIRD_UP = 0.25;  // a câmera mira um pouco acima dos olhos
 
   MT.Player = class {
     constructor(camera, dom) {
@@ -34,6 +37,10 @@
       this.enabled = false;
       this.drone = { on: false, theta: 0.5, phi: 0.95, radius: 165, target: new THREE.Vector3(5, 0, -42) };
       this.sensitivity = 0.0022;
+      this.view = 'first'; // 'first' ou 'third' (vê o personagem de fora)
+      this.camDist = THIRD_DIST;
+      this._piv = new THREE.Vector3();
+      this._back = new THREE.Vector3();
       this.bind();
     }
 
@@ -264,9 +271,48 @@
       // suaviza a subida de degraus
       this.camY += (eyeTarget - this.camY) * (1 - Math.exp(-18 * dt));
       if (Math.abs(eyeTarget - this.camY) > 0.6) this.camY = eyeTarget;
+      if (this.view === 'third') {
+        this.thirdPerson(this.camera.position, dt);
+        this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
+        return;
+      }
       const bobY = moving ? Math.sin(this.bob * 2) * 0.035 : 0;
       this.camera.position.set(this.pos.x, this.camY + bobY, this.pos.z);
       this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
+    }
+
+    // 0 em pé, 1 totalmente agachado
+    crouchAmount() {
+      return THREE.MathUtils.clamp((HEIGHT - this.height) / (HEIGHT - CROUCH_HEIGHT), 0, 1);
+    }
+
+    // Ponto pelo qual passa o raio da mira (para usar os PCs): a câmera em 1ª pessoa, acima da cabeça em 3ª
+    aimOrigin(out) {
+      return this.view === 'third' ? out.set(this.pos.x, this.camY + THIRD_UP, this.pos.z) : out.copy(this.camera.position);
+    }
+
+    // Pose em que a câmera deve estar agora (o PC usa para voltar ao jogador)
+    cameraPose(pos, quat) {
+      if (this.view === 'third') this.thirdPerson(pos, 0);
+      else pos.set(this.pos.x, this.camY, this.pos.z);
+      quat.setFromEuler(new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ'));
+    }
+
+    // Câmera atrás do personagem; se houver parede no caminho, ela chega mais perto
+    thirdPerson(out, dt) {
+      const piv = this.aimOrigin(this._piv);
+      const cp = Math.cos(this.pitch);
+      const back = this._back.set(Math.sin(this.yaw) * cp, -Math.sin(this.pitch), Math.cos(this.yaw) * cp);
+      let free = THIRD_DIST + 0.25;
+      for (const c of MT.colliders) {
+        if (c.enabled) free = Math.min(free, rayBox(piv, back, c, free));
+      }
+      if (back.y < 0) free = Math.min(free, (piv.y - 0.15) / -back.y); // chão do lado de fora
+      const target = Math.max(0.3, Math.min(THIRD_DIST, free - 0.25));
+      // aproxima na hora (para não ver através da parede) e se afasta devagar
+      if (!dt || target < this.camDist) this.camDist = target;
+      else this.camDist += (target - this.camDist) * (1 - Math.exp(-5 * dt));
+      return out.copy(piv).addScaledVector(back, this.camDist);
     }
 
     setDrone(on) {
@@ -295,4 +341,21 @@
       cam.lookAt(d.target);
     }
   };
+
+  // Distância ao longo do raio (origem o, direção d) até entrar na caixa c; Infinity se não cruzar antes de max
+  function rayBox(o, d, c, max) {
+    let t0 = 0, t1 = max;
+    for (const [p, v, lo, hi] of [[o.x, d.x, c.minX, c.maxX], [o.y, d.y, c.minY, c.maxY], [o.z, d.z, c.minZ, c.maxZ]]) {
+      if (Math.abs(v) < 1e-9) {
+        if (p < lo || p > hi) return Infinity;
+        continue;
+      }
+      let a = (lo - p) / v, b = (hi - p) / v;
+      if (a > b) [a, b] = [b, a];
+      t0 = Math.max(t0, a);
+      t1 = Math.min(t1, b);
+      if (t0 > t1) return Infinity;
+    }
+    return t0;
+  }
 })();

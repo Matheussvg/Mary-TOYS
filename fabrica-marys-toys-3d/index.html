@@ -33,6 +33,7 @@
     <li><kbd>Espaço</kbd> pular</li>
     <li><kbd>C</kbd> agachar</li>
     <li><kbd>E</kbd> usar PC</li>
+    <li><kbd>F</kbd> câmera</li>
     <li><kbd>T</kbd> telhado</li>
     <li><kbd>V</kbd> vista aérea</li>
     <li><kbd>M</kbd> minimapa</li>
@@ -72,9 +73,15 @@
             <div><dt>Telhado</dt><dd>T mostra ou oculta</dd></div>
             <div><dt>Vista aérea</dt><dd>V alterna · arraste gira · roda dá zoom</dd></div>
             <div><dt>Recomeçar</dt><dd>R volta para a calçada</dd></div>
+            <div><dt>Câmera</dt><dd>Primeira pessoa · F mostra o seu personagem de fora</dd></div>
             <div><dt>Computador</dt><dd>Na TI, mire na tela de um PC e clique (ou E) para abrir o SAP</dd></div>
           </dl>
           <p class="note">Portas de vidro, docas e cancela da portaria abrem sozinhas quando você chega perto.</p>
+          <label id="name-field">
+            <span>Seu nome</span>
+            <input id="player-name" type="text" maxlength="20" autocomplete="nickname" spellcheck="false" placeholder="Aparece acima do seu personagem">
+          </label>
+          <p id="name-error" class="note" hidden>Digite seu nome (pelo menos 2 letras) para entrar.</p>
           <button id="enter" type="button" disabled>Entrar na fábrica</button>
           <p id="load-status" class="mono">Carregando…</p>
         </section>
@@ -95,6 +102,7 @@
   <!-- Dados e núcleo -->
   <script src="js/config/layout.js"></script>
   <script src="js/config/ti.js"></script>
+  <script src="js/config/skin.js"></script>
   <script src="js/core/textures.js"></script>
   <script src="js/core/builder.js"></script>
 
@@ -110,6 +118,7 @@
 
   <!-- Jogador e interface -->
   <script src="js/player/player.js"></script>
+  <script src="js/player/avatar.js"></script>
   <script src="js/ui/hud.js"></script>
   <script src="js/ui/computer.js"></script>
   <script src="js/main.js"></script>

@@ -77,6 +77,12 @@
   player.teleport(MT.LAYOUT.spawn.x, MT.LAYOUT.spawn.z, MT.LAYOUT.spawn.yaw);
   const hud = new MT.HUD(player);
   const pc = new MT.Computer(camera, player, renderer.domElement);
+  const avatar = new MT.Avatar();
+  scene.add(avatar.group);
+  // em primeira pessoa aparece o braço direito do personagem
+  const arm = avatar.firstPersonArm();
+  camera.add(arm);
+  scene.add(camera);
 
   // ---- menu / pausa ----
   const overlay = $('overlay');
@@ -86,7 +92,27 @@
   enterBtn.disabled = false;
   document.body.classList.add('ready');
 
+  // ---- nome do jogador: obrigatório para entrar e mostrado acima do personagem ----
+  const nameInput = $('player-name');
+  const nameError = $('name-error');
+  try { nameInput.value = localStorage.getItem('mt-nome') || ''; } catch (_) { /* sem armazenamento: digita de novo */ }
+  nameInput.addEventListener('input', () => { nameError.hidden = true; });
+  const ensureName = () => {
+    const name = nameInput.value.replace(/\s+/g, ' ').trim();
+    if (name.length < 2) {
+      overlay.hidden = false;
+      nameError.hidden = false;
+      nameInput.focus();
+      return false;
+    }
+    nameInput.value = name;
+    avatar.setName(name);
+    try { localStorage.setItem('mt-nome', name); } catch (_) { /* idem */ }
+    return true;
+  };
+
   const start = () => {
+    if (!ensureName()) return;
     overlay.hidden = true;
     player.enabled = true;
     if (!player.drone.on) player.lock();
@@ -106,6 +132,7 @@
 
   // Atalho do menu: vai direto para o PC principal da TI e abre o SAP
   const openSap = () => {
+    if (!ensureName()) return;
     const c = MT.computers.find((k) => k.main) || MT.computers[0];
     if (!c) return;
     if (player.drone.on) setDrone(false);
@@ -120,6 +147,7 @@
   };
 
   hud.onTeleport = (a) => {
+    if (!ensureName()) return;
     const [x1, x2, z1, z2] = a.rect;
     if (player.drone.on) setDrone(false);
     // entra pela porta: posiciona perto do lado de acesso, olhando para dentro
@@ -146,6 +174,7 @@
     player.setDrone(on);
     MT.roof.visible = on ? false : roofVisible;
     for (const s of MT.signs) s.scale.multiplyScalar(on ? 3 : 1 / 3);
+    avatar.setFar(on);
     document.body.classList.toggle('drone', on);
     if (!on && player.enabled) player.lock();
   };
@@ -164,6 +193,9 @@
     } else if (e.code === 'KeyV') {
       setDrone(!player.drone.on);
       hud.toast(player.drone.on ? 'Vista aérea' : 'Primeira pessoa');
+    } else if (e.code === 'KeyF') {
+      player.view = player.view === 'third' ? 'first' : 'third';
+      hud.toast(player.view === 'third' ? 'Terceira pessoa: você vê o seu personagem' : 'Primeira pessoa');
     } else if (e.code === 'KeyM') {
       const w = $('minimap-wrap');
       w.hidden = !w.hidden;
@@ -200,6 +232,20 @@
     else {
       player.update(dt, t);
       pc.hoverCheck();
+    }
+    avatar.update(dt, t, {
+      x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: player.yaw, pitch: player.pitch,
+      speed: Math.hypot(player.vel.x, player.vel.z), onGround: player.onGround, crouch: player.crouchAmount(),
+    });
+    // o personagem some quando a câmera passa por ele (close-up no PC ou câmera encostada na parede)
+    const near = Math.hypot(camera.position.x - player.pos.x, camera.position.z - player.pos.z) < 0.5 && camera.position.y < player.pos.y + 2.2;
+    avatar.group.visible = (player.view === 'third' || player.drone.on || pc.busy) && !near;
+    arm.visible = player.view === 'first' && !player.drone.on && !pc.busy;
+    if (arm.visible) {
+      // braço na parte de baixo da tela, balançando com o passo
+      const step = Math.hypot(player.vel.x, player.vel.z) > 0.5 && player.onGround ? 1 : 0;
+      arm.position.set(0.3 + Math.cos(player.bob) * 0.012 * step, -0.3 + Math.abs(Math.sin(player.bob)) * 0.02 * step, -0.34);
+      arm.rotation.set(1.25 + Math.sin(player.bob) * 0.05 * step, 0.15, 0.25);
     }
     for (const fn of MT.animators) fn(dt, player, t);
     hud.update();

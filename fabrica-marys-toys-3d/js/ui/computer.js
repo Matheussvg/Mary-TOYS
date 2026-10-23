@@ -34,7 +34,7 @@
       this.dir = new THREE.Vector3();
       this.v = new THREE.Vector3();
       this.m = new THREE.Matrix4();
-      this.euler = new THREE.Euler();
+      this.o = new THREE.Vector3();
       this.sapTex = MT.screenTexture('sap');
       this.boot = MT.bootScreen();
       const $ = (id) => document.getElementById(id);
@@ -65,10 +65,11 @@
         const a = MT.areaAt(p.pos.x, p.pos.z);
         if (a && a.dept === 'ti') {
           cam.getWorldDirection(this.dir);
+          const o = p.aimOrigin(this.o); // em 3ª pessoa a mira passa acima da cabeça do personagem
           let bestAng = Infinity;
           for (const c of MT.computers) {
             if (c.room !== a.id) continue;
-            this.v.subVectors(c.center, cam.position);
+            this.v.subVectors(c.center, o);
             const dist = this.v.length();
             if (dist > MT.TI.reach || this.v.dot(c.normal) > 0) continue; // longe ou atrás da tela
             const ang = this.dir.angleTo(this.v);
@@ -219,8 +220,7 @@
       this.ignore = c;
       this.from.pos.copy(cam.position);
       this.from.quat.copy(cam.quaternion);
-      this.to.pos.set(p.pos.x, p.camY, p.pos.z);
-      this.to.quat.setFromEuler(this.euler.set(p.pitch, p.yaw, 0, 'YXZ'));
+      p.cameraPose(this.to.pos, this.to.quat);
       this.ctrl.copy(this.from.pos).addScaledVector(c.normal, this.from.pos.distanceTo(this.to.pos) * 0.6);
       this.ctrl.y = Math.max(this.from.pos.y, this.to.pos.y);
       p.lock(); // ainda dentro do clique: o navegador só prende o mouse com um gesto do usuário
