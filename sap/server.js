@@ -10,6 +10,8 @@ const F = require('./public/flow.js');
 const PORT = Number(process.env.PORT) || 3000;
 const MASTER_USER = process.env.ADMIN_USER || 'adm';
 const MASTER_PASS = process.env.ADMIN_PASS || 'adm';
+// Senha para limpar o histórico (aba só do dono do sistema, F.OWNER). Sem RESET_PASS, vale a senha do gerente master.
+const RESET_PASS = process.env.RESET_PASS || MASTER_PASS;
 // Senha de cada gerente de área: PASS_ADM_TI, PASS_ADM_PRODUCAO, ... ou MANAGER_PASS para todos (padrão "adm")
 const managerPass = login => process.env[`PASS_${login.toUpperCase()}`] || process.env.MANAGER_PASS || 'adm';
 const SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
@@ -42,6 +44,7 @@ function pgStore(pool) {
           seq bigint not null default nextval('docs_seq'), primary key(collection, id))`);
     },
     async rev() { return (await pool.query('select coalesce(max(seq),0)::text as r from docs')).rows[0].r; },
+    async clear() { await pool.query('delete from docs'); },
     async all() { return (await pool.query('select collection, id, data from docs order by seq')).rows; },
     async get(c, id) { return (await pool.query('select data from docs where collection=$1 and id=$2', [c, id])).rows[0]?.data || null; },
     async create(c, id, data) {
@@ -73,6 +76,7 @@ function fileStore(file) {
   return {
     async init() {},
     async rev() { return String(db.seq); },
+    async clear() { db = { seq: db.seq + 1, docs: {} }; save(); },
     async all() { return Object.values(db.docs); },
     async get(c, id) { return db.docs[key(c, id)]?.data || null; },
     async create(c, id, data) { if (db.docs[key(c, id)]) return false; db.docs[key(c, id)] = { collection: c, id, data, seq: ++db.seq }; save(); return true; },
@@ -101,6 +105,8 @@ const page = () => `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8
 // ===== Simulador 3D =====
 // A pasta da fábrica fica ao lado de sap/. O index.html dela recebe o endereço do SAP que os PCs da TI abrem.
 const SIM_DIR = path.join(__dirname, '..', 'fabrica-marys-toys-3d');
+// Com SAP_URL (ex.: o SAP online no Render), este servidor só publica o simulador: /sap leva para lá e a API fica desligada
+const SAP_URL = process.env.SAP_URL || '';
 const HAS_SIM = fs.existsSync(path.join(SIM_DIR, 'index.html'));
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -110,7 +116,7 @@ const TYPES = {
 };
 async function sendSim(res, pathname) {
   if (pathname === '/' || pathname === '/index.html') {
-    const html = fs.readFileSync(path.join(SIM_DIR, 'index.html'), 'utf8').replace('</head>', '<script>window.MT_SAP_URL="/sap/"</script>\n</head>');
+    const html = fs.readFileSync(path.join(SIM_DIR, 'index.html'), 'utf8').replace('</head>', `<script>window.MT_SAP_URL=${JSON.stringify(SAP_URL || '/sap/')}</script>\n</head>`);
     return send(res, 200, html, 'text/html; charset=utf-8');
   }
   const file = path.resolve(SIM_DIR, '.' + decodeURIComponent(pathname));
@@ -143,6 +149,8 @@ async function handle(req, res) {
 
   if (req.method === 'GET' && url.pathname === '/healthz') return send(res, 200, { ok: true });
   // SAP em /sap/; sem o simulador ao lado, continua também na raiz
+  if (SAP_URL && (url.pathname === '/sap' || url.pathname.startsWith('/sap/'))) { res.writeHead(302, { location: SAP_URL }); return res.end(); }
+  if (SAP_URL && parts[0] === 'api') return send(res, 404, { error: `O SAP fica em ${SAP_URL}` });
   if (req.method === 'GET' && url.pathname === '/sap') { res.writeHead(301, { location: '/sap/' }); return res.end(); }
   const sapPath = url.pathname.startsWith('/sap/') ? url.pathname.slice(4) : HAS_SIM ? null : url.pathname;
   if (req.method === 'GET' && (sapPath === '/' || sapPath === '/index.html')) return send(res, 200, page(), 'text/html; charset=utf-8');
@@ -176,6 +184,17 @@ async function handle(req, res) {
       return send(res, 200, { token: makeToken(session), session });
     }
     return send(res, 401, { error: 'Usuário ou senha inválidos' });
+  }
+
+  // Dono do sistema: apaga todos os pedidos e conferências (aba "Limpar histórico")
+  if (req.method === 'POST' && a === 'reset' && !b) {
+    const who = readToken(req);
+    if (!who || who.role !== 'master' || who.name !== F.OWNER) return send(res, 403, { error: `Só ${F.OWNER} pode limpar o histórico` });
+    const { pass } = await readJson(req);
+    if (!same(pass, RESET_PASS)) return send(res, 403, { error: 'Senha incorreta' });
+    await store.clear();
+    console.log(`Histórico limpo por ${who.name}`);
+    return send(res, 200, { ok: true });
   }
 
   // Gerentes: salvar pedido
