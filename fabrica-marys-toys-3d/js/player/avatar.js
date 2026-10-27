@@ -163,6 +163,13 @@
       this.fitTag();
     }
 
+    // Jogador que saiu: libera as caixas e a plaquinha (a skin é compartilhada e fica)
+    dispose() {
+      this.group.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
+      if (this.tag.material.map) this.tag.material.map.dispose();
+      this.tag.material.dispose();
+    }
+
     /*
      * s: { x, y, z (pés), yaw, pitch, speed (m/s no chão), crouch (0 a 1), onGround }
      */

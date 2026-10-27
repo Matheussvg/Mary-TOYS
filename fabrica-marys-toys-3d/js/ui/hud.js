@@ -20,6 +20,7 @@
         toast: document.getElementById('toast'),
       };
       this.lastArea = undefined;
+      this.others = null; // jogadores online (MT.Online preenche)
       this.base = this.drawBase();
       this.buildList();
     }
@@ -163,6 +164,15 @@
       g.setTransform(1, 0, 0, 1, 0, 0);
       g.drawImage(off, 0, 0);
       g.scale(dpr, dpr);
+      if (this.others) {
+        g.fillStyle = '#3ccf6e';
+        g.strokeStyle = '#1c1210';
+        g.lineWidth = 1.5;
+        for (const o of this.others.values()) {
+          const [ox, oy] = this.worldToMap(o.cur.x, o.cur.z, W, H);
+          g.beginPath(); g.arc(ox, oy, 3.5, 0, Math.PI * 2); g.fill(); g.stroke();
+        }
+      }
       const at = drone ? p.drone.target : p.pos;
       const [x, y] = this.worldToMap(at.x, at.z, W, H);
       const yaw = drone ? p.drone.theta : p.yaw;

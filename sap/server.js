@@ -1,5 +1,6 @@
 // Servidor da conferência de pedidos Mery's Toys.
 // Serve o simulador 3D da fábrica na raiz, o SAP em /sap/ (é ele que abre nos PCs da TI) e uma API JSON que todas as telas consultam a cada 2,5 s.
+// Os jogadores online do simulador se veem pelo WebSocket em /online (online.js).
 // Dados: Postgres quando DATABASE_URL existe (Render); senão, arquivo data.json (para testar no computador).
 const http = require('http');
 const fs = require('fs');
@@ -116,7 +117,7 @@ const TYPES = {
 };
 async function sendSim(res, pathname) {
   if (pathname === '/' || pathname === '/index.html') {
-    const html = fs.readFileSync(path.join(SIM_DIR, 'index.html'), 'utf8').replace('</head>', `<script>window.MT_SAP_URL=${JSON.stringify(SAP_URL || '/sap/')}</script>\n</head>`);
+    const html = fs.readFileSync(path.join(SIM_DIR, 'index.html'), 'utf8').replace('</head>', `<script>window.MT_SAP_URL=${JSON.stringify(SAP_URL || '/sap/')};window.MT_ONLINE=true</script>\n</head>`);
     return send(res, 200, html, 'text/html; charset=utf-8');
   }
   const file = path.resolve(SIM_DIR, '.' + decodeURIComponent(pathname));
@@ -253,10 +254,12 @@ async function handle(req, res) {
 }
 
 store.init().then(() => {
-  http.createServer((req, res) => {
+  const server = http.createServer((req, res) => {
     handle(req, res).catch(e => {
       console.error(e);
       if (!res.headersSent) send(res, e.status || 500, { error: e.status ? e.message : 'Erro no servidor' });
     });
-  }).listen(PORT, () => console.log(`Mery's Toys conferência rodando na porta ${PORT} (${process.env.DATABASE_URL ? 'Postgres' : 'data.json'})${SAP_URL ? ` · só o simulador; SAP em ${SAP_URL}` : HAS_SIM ? ' · simulador em / e SAP em /sap/' : ''}`));
+  });
+  if (HAS_SIM) require('./online').attach(server);
+  server.listen(PORT, () => console.log(`Mery's Toys conferência rodando na porta ${PORT} (${process.env.DATABASE_URL ? 'Postgres' : 'data.json'})${SAP_URL ? ` · só o simulador; SAP em ${SAP_URL}` : HAS_SIM ? ' · simulador em / e SAP em /sap/' : ''}`));
 }).catch(e => { console.error('Falha ao preparar o banco:', e); process.exit(1); });

@@ -34,6 +34,15 @@ Antes de entrar, cada pessoa digita o **nome** no menu (obrigatório). Ele fica 
 - O código do personagem fica em `js/player/avatar.js` (`MT.Avatar`): cada novo jogador é um `new MT.Avatar(nome)`, o que já deixa pronto para mais de um usuário.
 - Para trocar a skin, substitua o PNG e atualize `js/config/skin.js` (as instruções estão no começo do arquivo). A imagem fica embutida nesse arquivo para o jogo funcionar também abrindo o `index.html` direto do computador.
 
+## Jogadores online
+
+Quem entra no simulador aparece para os outros: o personagem anda junto com a pessoa, com o nome em cima da cabeça. No canto de cima à direita fica quantos jogadores estão online (passando o mouse, aparecem os nomes), no minimapa os outros jogadores são pontos verdes, e um aviso mostra quem entrou e quem saiu da fábrica.
+
+- O servidor (`sap/online.js`, WebSocket em `/online`) recebe a posição de cada jogador 10 vezes por segundo e repassa a de todos. Nada fica guardado: fechar a página tira o personagem da fábrica.
+- Aberto pelo Render ou pelo `npm start`, o jogo se conecta no próprio servidor. Abrindo o `index.html` direto do computador, ele se conecta no simulador publicado (`servidor` em `fabrica-marys-toys-3d/js/config/online.js`), então todo mundo se encontra na mesma fábrica.
+- Se a conexão cair (ou o Render estiver acordando), o selo fica âmbar com "Sem conexão · tentando de novo…" e o jogo continua normalmente até voltar.
+- Até 60 jogadores ao mesmo tempo.
+
 ## Rodar no computador
 
 ```
@@ -43,7 +52,7 @@ npm start
 
 | Endereço | O que abre |
 |---|---|
-| http://localhost:3000 | Simulador (os PCs abrem o SAP online de `sapUrl`) |
+| http://localhost:3000 | Simulador (os PCs abrem o SAP online de `sapUrl`; os jogadores se veem entre quem abrir este endereço) |
 | http://localhost:3000/sap/ | SAP sozinho |
 
 Sem `DATABASE_URL`, os dados ficam em `sap/data.json`.

@@ -82,6 +82,8 @@
   const pc = new MT.Computer(camera, player, renderer.domElement);
   const avatar = new MT.Avatar();
   scene.add(avatar.group);
+  // quem mais está na fábrica: cada jogador aparece para os outros com o nome acima da cabeça
+  const online = new MT.Online(scene, player, hud);
   // em primeira pessoa aparece o braço direito do personagem
   const arm = avatar.firstPersonArm();
   camera.add(arm);
@@ -110,6 +112,7 @@
     }
     nameInput.value = name;
     avatar.setName(name);
+    online.start(name);
     try { localStorage.setItem('mt-nome', name); } catch (_) { /* idem */ }
     return true;
   };
@@ -185,6 +188,7 @@
     showRoof(on ? false : roofVisible);
     for (const s of MT.signs) s.scale.multiplyScalar(on ? 3 : 1 / 3);
     avatar.setFar(on);
+    online.setFar(on);
     document.body.classList.toggle('drone', on);
     if (!on && player.enabled) player.lock();
   };
@@ -252,6 +256,7 @@
       x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: player.yaw, pitch: player.pitch,
       speed: Math.hypot(player.vel.x, player.vel.z), onGround: player.onGround, crouch: player.crouchAmount(),
     });
+    online.update(dt, t);
     // o personagem some quando a câmera passa por ele (close-up no PC ou câmera encostada na parede)
     const near = Math.hypot(camera.position.x - player.pos.x, camera.position.z - player.pos.z) < 0.5 && camera.position.y < player.pos.y + 2.2;
     avatar.group.visible = (player.view === 'third' || player.drone.on || pc.busy) && !near;

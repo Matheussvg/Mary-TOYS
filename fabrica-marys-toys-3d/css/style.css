@@ -91,6 +91,29 @@ body.drone #crosshair { display: none; }
 #area-people { color: var(--cream) !important; font-weight: 500; }
 #area-size { color: var(--gold) !important; font-size: 15px; }
 
+/* Jogadores online: bolinha verde conectado, âmbar tentando de novo */
+#online {
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 14px/1.2 var(--label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: default;
+}
+#online i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+#online.on i { background: #3ccf6e; box-shadow: 0 0 0 3px rgba(60, 207, 110, 0.25); }
+#online.off i { background: var(--gold); }
+#online.off span { color: var(--muted); }
+
 #minimap-wrap {
   right: 16px;
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
@@ -433,6 +456,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   #keys { display: none; }
   #area-list { grid-template-columns: 1fr; }
   #minimap-wrap { width: 180px; }
+  #online { top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 170px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
