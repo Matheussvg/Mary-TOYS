@@ -52,7 +52,16 @@ Também dá para abrir `fabrica-marys-toys-3d/index.html` direto, sem servidor: 
 
 ## Publicar no Render
 
-O `render.yaml` da raiz cria o serviço web e o banco Postgres (**New → Blueprint**). Se preferir criar o Web Service à mão: deixe **Root Directory** vazio, Build `npm install`, Start `npm start`, e configure as variáveis descritas em [`sap/README.md`](sap/README.md).
+Publicado hoje:
+
+| Serviço no Render | Endereço | De onde vem |
+|---|---|---|
+| `marys-toys-simulador` | https://marys-toys-simulador.onrender.com | este repositório (branch `claude/clever-ptolemy-nnnat8`), com `SAP_URL` apontando para o SAP online |
+| `merys-toys-conferencia` | https://merys-toys-conferencia.onrender.com | repositório SAP (branch `master`), com o Postgres `merys-toys-db` |
+
+Com a variável `SAP_URL`, o servidor deste repositório só publica o simulador: `/sap` leva para o SAP online e a API dele fica desligada, para existir um SAP só. Os dois serviços publicam sozinhos a cada push no branch configurado. Se este branch for juntado ao `master`, troque o branch do `marys-toys-simulador` em **Settings → Build & Deploy**.
+
+Para publicar tudo num serviço só (simulador + SAP + banco), o `render.yaml` da raiz cria o serviço web e o banco Postgres (**New → Blueprint**). Se preferir criar o Web Service à mão: deixe **Root Directory** vazio, Build `npm install`, Start `npm start`, e configure as variáveis descritas em [`sap/README.md`](sap/README.md).
 
 O deploy deu certo se o log terminar com `rodando na porta … (Postgres) · simulador em / e SAP em /sap/`.
 
