@@ -9,7 +9,7 @@
   const seeded = (s) => () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
 
   // Tamanho do canvas: telas 16:9; quadros de parede mais largos
-  const SIZE = { sap: [1024, 576], kanban: [1024, 440], moodboard: [1024, 440], plan: [1024, 440] };
+  const SIZE = { sap: [1024, 576], kanban: [1024, 440], moodboard: [1024, 440], plan: [1024, 440], cep: [1024, 440], seguranca: [1024, 440], turnos: [1024, 440] };
   const cache = new Map();
   MT.screenTexture = function (kind, variant = 0) {
     const key = kind + ':' + variant;
@@ -507,7 +507,290 @@
         scribble(g, 40, 92 + i * 44, 90, '#2b2b33', rnd);
       }
     },
+    // ---------- Produção e ADM ----------
+
+    // Metrologia: carta de controle e últimas medições
+    qualidade(g, w, h, rnd) {
+      header(g, w, h, SAP.green, 'METROLOGIA · CONTROLE DE QUALIDADE');
+      const cx = 12, cy = 46, cw = w * 0.56, ch = h - 58;
+      g.fillStyle = '#fff';
+      R(g, cx, cy, cw, ch, 6);
+      g.fill();
+      font(g, 600, 12, 'label');
+      g.fillStyle = SAP.muted;
+      g.fillText('ALTURA DO BLOCO 2×4 (mm)', cx + 10, cy + 14);
+      const top = cy + 34, bot = cy + ch - 14;
+      for (const [f, c, t] of [[0.15, SAP.red, 'LSC'], [0.5, SAP.ok, '9,60'], [0.85, SAP.red, 'LIC']]) {
+        const y = top + (bot - top) * f;
+        g.strokeStyle = c;
+        g.setLineDash(t === '9,60' ? [] : [6, 4]);
+        g.lineWidth = 1.5;
+        g.beginPath(); g.moveTo(cx + 44, y); g.lineTo(cx + cw - 10, y); g.stroke();
+        g.fillStyle = c;
+        g.fillText(t, cx + 10, y);
+      }
+      g.setLineDash([]);
+      g.strokeStyle = '#2a4b9b';
+      g.lineWidth = 2;
+      g.beginPath();
+      const n = 18;
+      for (let i = 0; i < n; i++) {
+        const x = cx + 50 + i * ((cw - 66) / (n - 1)), y = top + (bot - top) * (0.5 + (rnd() - 0.5) * (i === 13 ? 0.9 : 0.5));
+        if (i) g.lineTo(x, y); else g.moveTo(x, y);
+      }
+      g.stroke();
+      const rows = [['Lote 4471', '9,61', 'OK'], ['Lote 4470', '9,59', 'OK'], ['Lote 4469', '9,64', 'NC'], ['Lote 4468', '9,60', 'OK'], ['Lote 4467', '9,58', 'OK'], ['Lote 4466', '9,60', 'OK']];
+      const tx = cx + cw + 10, tw = w - tx - 12;
+      rows.forEach(([l, v, st], i) => {
+        const y = cy + i * 48;
+        g.fillStyle = '#fff';
+        R(g, tx, y, tw, 42, 6);
+        g.fill();
+        font(g, 700, 14);
+        g.fillStyle = SAP.ink;
+        g.fillText(l, tx + 10, y + 14);
+        font(g, 500, 13);
+        g.fillStyle = SAP.muted;
+        g.fillText(v + ' mm', tx + 10, y + 31);
+        font(g, 700, 13, 'label');
+        g.textAlign = 'right';
+        g.fillStyle = st === 'OK' ? SAP.ok : SAP.red;
+        g.fillText(st === 'OK' ? 'APROVADO' : 'NÃO CONFORME', tx + tw - 10, y + 22);
+        g.textAlign = 'left';
+      });
+    },
+
+    // Operação: situação das 8 injetoras
+    maquinas(g, w, h, rnd) {
+      header(g, w, h, '#a3161c', 'OPERAÇÃO · INJETORAS EM TEMPO REAL', '#12181d');
+      const st = [['RODANDO', '#3ccf6e'], ['RODANDO', '#3ccf6e'], ['SETUP', '#f2b705'], ['RODANDO', '#3ccf6e'], ['RODANDO', '#3ccf6e'], ['PARADA', '#ff5a4f'], ['RODANDO', '#3ccf6e'], ['RODANDO', '#3ccf6e']];
+      const cw = (w - 12 * 5) / 4, ch = (h - 46 - 12 * 3) / 2;
+      st.forEach(([t, c], i) => {
+        const x = 12 + (i % 4) * (cw + 12), y = 46 + Math.floor(i / 4) * (ch + 12);
+        g.fillStyle = '#1e272e';
+        R(g, x, y, cw, ch, 8);
+        g.fill();
+        g.fillStyle = c;
+        g.fillRect(x, y, 5, ch);
+        font(g, 700, 18, 'label');
+        g.fillStyle = '#fff';
+        g.fillText('INJ-0' + (i + 1), x + 14, y + 20);
+        font(g, 700, 12, 'label');
+        g.fillStyle = c;
+        g.fillText(t, x + 14, y + 42);
+        font(g, 500, 12);
+        g.fillStyle = '#a9b6bf';
+        g.fillText(t === 'PARADA' ? 'Troca de molde' : `Ciclo ${(5.8 + rnd() * 0.5).toFixed(1).replace('.', ',')} s`, x + 14, y + 62);
+        g.fillText(`${Math.round(800 + rnd() * 600)} peças`, x + 14, y + 80);
+        const oee = t === 'RODANDO' ? 0.75 + rnd() * 0.2 : t === 'SETUP' ? 0.4 : 0.1;
+        g.fillStyle = '#2c3840';
+        g.fillRect(x + 14, y + ch - 22, cw - 28, 8);
+        g.fillStyle = c;
+        g.fillRect(x + 14, y + ch - 22, (cw - 28) * oee, 8);
+      });
+    },
+
+    // Laminação: refugo e sucata do mês
+    refugo(g, w, h, rnd) {
+      header(g, w, h, '#6b4e2e', 'REFUGO E SUCATA · OUTUBRO');
+      const kpis = [['Refugo', '2,1%', SAP.red], ['Moído reaproveitado', '842 kg', SAP.ok], ['Sucata', '37 kg', SAP.muted]];
+      const kw = (w - 12 * 4) / 3;
+      kpis.forEach(([t, v, c], i) => {
+        const x = 12 + i * (kw + 12);
+        g.fillStyle = '#fff';
+        R(g, x, 44, kw, 70, 8);
+        g.fill();
+        font(g, 500, 13);
+        g.fillStyle = SAP.muted;
+        g.fillText(t, x + 10, 60);
+        font(g, 700, 30, 'label');
+        g.fillStyle = c;
+        g.fillText(v, x + 10, 94);
+      });
+      const bx = 12, by = 124, bw = w - 24, bh = h - by - 12;
+      g.fillStyle = '#fff';
+      R(g, bx, by, bw, bh, 8);
+      g.fill();
+      font(g, 600, 11, 'label');
+      for (let i = 0; i < 8; i++) {
+        const v = 0.2 + rnd() * 0.7, x = bx + 16 + i * ((bw - 32) / 8), bwid = (bw - 32) / 8 - 12;
+        g.fillStyle = v > 0.75 ? SAP.red : SAP.green2;
+        g.fillRect(x, by + bh - 24 - v * (bh - 44), bwid, v * (bh - 44));
+        g.fillStyle = SAP.muted;
+        g.fillText('INJ-0' + (i + 1), x, by + bh - 10);
+      }
+    },
+
+    // Manutenção: ordens de serviço
+    manutencao(g, w, h) {
+      header(g, w, h, '#e36414', 'MANUTENÇÃO · ORDENS DE SERVIÇO');
+      const list = [
+        ['OS 2231', 'INJ-06 · troca de molde', 'Em andamento', SAP.gold],
+        ['OS 2229', 'INJ-03 · resistência do canhão', 'Aberta', SAP.red],
+        ['OS 2226', 'Laminadora · rolamento da calandra', 'Programada', '#2a4b9b'],
+        ['OS 2224', 'Moinho · afiação das facas', 'Concluída', SAP.ok],
+        ['OS 2221', 'Empilhadeira · revisão 500 h', 'Concluída', SAP.ok],
+        ['OS 2219', 'Compressor · troca de filtro', 'Concluída', SAP.ok],
+      ];
+      list.forEach(([id, t, s, c], i) => {
+        const y = 44 + i * 52;
+        g.fillStyle = '#fff';
+        R(g, 10, y, w - 20, 44, 6);
+        g.fill();
+        g.fillStyle = c;
+        g.fillRect(10, y, 5, 44);
+        font(g, 700, 13, 'label');
+        g.fillStyle = '#5b6470';
+        g.fillText(id, 24, y + 22);
+        font(g, 500, 14);
+        g.fillStyle = '#20262e';
+        g.fillText(t, 92, y + 22);
+        font(g, 700, 12, 'label');
+        g.textAlign = 'right';
+        g.fillStyle = c;
+        g.fillText(s.toUpperCase(), w - 22, y + 22);
+        g.textAlign = 'left';
+      });
+    },
+
+    // ADM: financeiro
+    financeiro(g, w, h, rnd) {
+      header(g, w, h, '#8e1b2a', 'ADM · FINANCEIRO');
+      const kpis = [['A receber', 'R$ 184 mil', SAP.ok], ['A pagar', 'R$ 96 mil', SAP.red], ['Caixa', 'R$ 412 mil', SAP.green]];
+      const kw = (w - 12 * 4) / 3;
+      kpis.forEach(([t, v, c], i) => {
+        const x = 12 + i * (kw + 12);
+        g.fillStyle = '#fff';
+        R(g, x, 44, kw, 70, 8);
+        g.fill();
+        font(g, 500, 13);
+        g.fillStyle = SAP.muted;
+        g.fillText(t, x + 10, 60);
+        font(g, 700, 28, 'label');
+        g.fillStyle = c;
+        g.fillText(v, x + 10, 94);
+      });
+      const bx = 12, by = 124, bw = w - 24, bh = h - by - 12;
+      g.fillStyle = '#fff';
+      R(g, bx, by, bw, bh, 8);
+      g.fill();
+      for (const [c, base] of [[SAP.ok, 0.55], [SAP.red, 0.3]]) {
+        g.strokeStyle = c;
+        g.lineWidth = 3;
+        g.beginPath();
+        for (let i = 0; i < 12; i++) {
+          const x = bx + 20 + i * ((bw - 40) / 11), y = by + bh - 16 - (base + (rnd() - 0.4) * 0.25 + i * 0.015) * (bh - 32);
+          if (i) g.lineTo(x, y); else g.moveTo(x, y);
+        }
+        g.stroke();
+      }
+    },
+
+    // Quadro da Metrologia: CEP desenhado à mão e não conformidades
+    cep(g, w, h, rnd) {
+      board(g, w, h);
+      font(g, 700, 30, 'label');
+      g.textBaseline = 'middle';
+      g.fillStyle = '#2a4b9b';
+      g.fillText('CEP · ALTURA DO BLOCO 2×4', 30, 40);
+      g.strokeStyle = '#a3161c';
+      g.lineWidth = 3;
+      g.setLineDash([14, 10]);
+      for (const y of [100, 300]) { g.beginPath(); g.moveTo(30, y); g.lineTo(640, y); g.stroke(); }
+      g.setLineDash([]);
+      g.strokeStyle = '#1f6b3a';
+      g.beginPath(); g.moveTo(30, 200); g.lineTo(640, 200); g.stroke();
+      g.strokeStyle = '#2b2b33';
+      g.lineWidth = 4;
+      g.beginPath();
+      for (let i = 0; i < 14; i++) {
+        const x = 50 + i * 44, y = 200 + (rnd() - 0.5) * (i === 9 ? 230 : 140);
+        if (i) g.lineTo(x, y); else g.moveTo(x, y);
+      }
+      g.stroke();
+      font(g, 700, 26, 'label');
+      g.fillStyle = '#a3161c';
+      g.fillText('NÃO CONFORMIDADES', 680, 90);
+      note(g, 690, 120, 120, '#ffb3c7', rnd);
+      note(g, 830, 130, 120, '#ffe36e', rnd);
+      note(g, 700, 270, 120, '#9ad8ff', rnd);
+    },
+
+    // Quadro da Segurança do Trabalho
+    seguranca(g, w, h) {
+      board(g, w, h);
+      g.textBaseline = 'middle';
+      g.fillStyle = '#1f6b3a';
+      R(g, 30, 30, 360, h - 60, 16);
+      g.fill();
+      g.textAlign = 'center';
+      g.fillStyle = '#fff';
+      font(g, 700, 30, 'label');
+      g.fillText('DIAS SEM ACIDENTES', 210, 80);
+      font(g, 400, 150, 'display');
+      g.fillText('127', 210, 220);
+      font(g, 600, 24, 'label');
+      g.fillText('RECORDE: 214 DIAS', 210, 350);
+      g.textAlign = 'left';
+      font(g, 700, 32, 'label');
+      g.fillStyle = '#a3161c';
+      g.fillText('EPI OBRIGATÓRIO NA PRODUÇÃO', 420, 60);
+      const items = [['Óculos de proteção', '#2a4b9b'], ['Protetor auricular', '#c0161d'], ['Luvas', '#f2b705'], ['Botina de segurança', '#1f2124'], ['Capacete na manutenção', '#e36414']];
+      items.forEach(([t, c], i) => {
+        const y = 120 + i * 58;
+        g.fillStyle = c;
+        g.beginPath(); g.arc(446, y, 20, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#fff';
+        font(g, 700, 22, 'label');
+        g.textAlign = 'center';
+        g.fillText('✓', 446, y + 1);
+        g.textAlign = 'left';
+        g.fillStyle = '#2b2b33';
+        font(g, 600, 28, 'label');
+        g.fillText(t, 482, y);
+      });
+    },
+
+    // Quadro da Operação: escala de turnos
+    turnos(g, w, h) {
+      board(g, w, h);
+      font(g, 700, 30, 'label');
+      g.textBaseline = 'middle';
+      g.fillStyle = '#a3161c';
+      g.fillText('ESCALA DE TURNOS · OPERAÇÃO', 30, 40);
+      const days = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+      const people = [['Alisson', [1, 1, 1, 1, 1, 0]], ['Pedro Henrique', [1, 1, 2, 2, 1, 0]], ['Rayanne', [2, 2, 2, 1, 2, 1]], ['Milena', [2, 1, 1, 2, 2, 1]]];
+      const x0 = 260, cw = (w - x0 - 30) / days.length;
+      font(g, 700, 22, 'label');
+      days.forEach((d, i) => { g.fillStyle = '#2b2b33'; g.fillText(d, x0 + i * cw + cw / 2 - 18, 92); });
+      people.forEach(([n, t], r) => {
+        const y = 140 + r * 66;
+        g.fillStyle = '#2b2b33';
+        font(g, 600, 28, 'label');
+        g.fillText(n, 30, y);
+        t.forEach((v, i) => {
+          if (!v) return;
+          g.fillStyle = v === 1 ? '#ffe36e' : '#9ad8ff';
+          g.fillRect(x0 + i * cw + 6, y - 22, cw - 12, 44);
+          g.fillStyle = '#2b2b33';
+          font(g, 700, 22, 'label');
+          g.fillText(v + 'º T', x0 + i * cw + cw / 2 - 20, y);
+        });
+      });
+    },
   };
+
+  // Faixa de título das telas
+  function header(g, w, h, color, text, bg) {
+    g.fillStyle = bg || '#f4f6f8';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = color;
+    g.fillRect(0, 0, w, 34);
+    font(g, 700, 17, 'label');
+    g.textBaseline = 'middle';
+    g.fillStyle = '#fff';
+    g.fillText(text, 12, 17);
+  }
 
   // Moldura branca de quadro com reflexo leve
   function board(g, w, h) {

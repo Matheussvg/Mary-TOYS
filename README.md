@@ -1,6 +1,6 @@
 # Mary's Toys · Fábrica 3D com SAP
 
-Simulador 3D da fábrica com o SAP da Mery's Toys (ME22N + conferência de pedidos por área) funcionando nos computadores da TI, do RH e do Recebimento, injetoras funcionando na área de produção e a logística com estantes porta-palete.
+Simulador 3D da fábrica com o SAP da Mery's Toys (ME22N + conferência de pedidos por área) funcionando nos computadores da TI, do RH, do ADM, das salas da Produção e do Recebimento, injetoras funcionando na área de produção e a logística com estantes porta-palete.
 
 | Pasta | O que tem |
 |---|---|
@@ -17,7 +17,7 @@ Todos os PCs do simulador abrem o **SAP online** (https://merys-toys-conferencia
 
 ## Usar o SAP dentro do simulador
 
-1. Vá até a ala da TI (lado oeste), o RH (lado leste) ou o Recebimento da Flávia (logística), ou use **Ir direto para uma área** no menu.
+1. Vá até a ala da TI (lado oeste), o RH ou o ADM (lado leste), uma das salas da Produção ou o Recebimento da Flávia (logística), ou use **Ir direto para uma área** no menu.
 2. Mire na tela de um computador: aparece **Clique para acessar o SAP** com o nome do PC.
 3. Clique (ou aperte **E**). A câmera senta na cadeira e se aproxima do monitor, e o SAP abre na tela.
 4. **Levantar** (ou **Esc**) volta a andar. O SAP continua aberto: o login e o rascunho da ME22N ficam onde estavam.
@@ -82,21 +82,33 @@ As injetoras são o modelo `fabrica-marys-toys-3d/assets/fabrica-blocos.glb`: 8 
 - Montagem e animação: `js/world/producao.js`. As 8 máquinas são desenhadas juntas (cada peça vira uma malha repetida), então pesam quase o mesmo que uma.
 - O GLB é lido com o GLTFLoader do three.js r128 (`js/lib/GLTFLoader.js`) mais `js/models/glb.js`, que trata as extensões do arquivo. Ele fica embutido em `js/config/fabrica-blocos.glb.js` para o jogo funcionar abrindo o `index.html` direto; para trocar o modelo, veja as instruções no começo desse arquivo.
 
+## Salas da Produção
+
+As quatro salas atrás das injetoras têm o que cada setor usa, com PCs que abrem o SAP:
+
+- **Metrologia e Qualidade (Henry):** máquina de medição tridimensional medindo um bloco (a ponte, o carro e o apalpador se mexem), bancada de inspeção com lupa, paquímetro, micrômetro e amostras do lote, quadro do CEP e os PCs do Henry e da inspeção de lotes.
+- **Laminação, Refugo e Sucata (Joci / Lucas):** linha de laminação funcionando (extrusora, calandra com as engrenagens girando, filme correndo e bobina enrolando), moinho de refugo, caçambas de refugo, sucata e material moído, big bags de moído e os PCs do Joci e do Lucas.
+- **Operação das Máquinas (Alisson / Pedro Henrique / Rayanne / Milena):** sala de controle com 3 TVs (indicadores, situação das 8 injetoras e plano de produção), um PC para cada um, mesa de reunião e escala de turnos.
+- **Manutenção e Segurança do Trabalho:** bancada com morsa, esmeril e painel de ferramentas, carrinho de ferramentas, estante de peças, armário de EPI, quadro de dias sem acidentes, primeiros socorros, escada e o PC das ordens de serviço.
+
+Toda sala da Produção tem extintor sinalizado perto da porta. Os modelos ficam em `js/models/industria.js` e a posição de cada item em `js/config/mobilia.js`.
+
 ## Logística
 
 Almoxarifado, Recebimento, Estoque e Expedição têm estantes porta-palete com pallets e caixas, pallets soltos perto das docas (embalados na Expedição) e empilhadeiras no Estoque e na Expedição. Os corredores entre o portão e a doca e entre as salas ficam livres. Os modelos ficam em `js/models/logistica.js` e a posição de cada item em `js/config/mobilia.js`.
 
 ## Mobília das salas
 
-Cada sala é montada a partir de `fabrica-marys-toys-3d/js/config/ti.js` (TI) e `js/config/mobilia.js` (RH, Recebimento e logística), com os modelos 3D de `js/models/`:
+Cada sala é montada a partir de `fabrica-marys-toys-3d/js/config/ti.js` (TI) e `js/config/mobilia.js` (RH, ADM, salas da Produção e logística), com os modelos 3D de `js/models/`. Para pesar menos, cada sala só é desenhada com o jogador a menos de 45 m dela (as mais longe ficam atrás das paredes).
 
 | Arquivo | Para quê |
 |---|---|
 | `js/config/ti.js` | O que vai em cada sala da TI e onde (encostado numa parede ou a partir do centro da sala), e o endereço do SAP |
-| `js/config/mobilia.js` | O mesmo para o RH, o Recebimento e as salas da logística |
+| `js/config/mobilia.js` | O mesmo para o RH, o ADM, as salas da Produção, o Recebimento e as salas da logística |
 | `js/models/office.js` | Modelos: estação de trabalho, ilha de mesas, mesas, estante, quadro, TV, sofá, plantas, racks, balcão de suporte, bancada com impressoras 3D |
-| `js/models/screens.js` | O que aparece nas telas: SAP, código, design, CAD, plano do PCP, chamados, servidores e quadros |
+| `js/models/screens.js` | O que aparece nas telas: SAP, código, design, CAD, plano do PCP, chamados, servidores, qualidade, injetoras, refugo, manutenção, financeiro e quadros |
 | `js/models/logistica.js` | Modelos: estante porta-palete, pallet com caixas e empilhadeira |
+| `js/models/industria.js` | Modelos das salas da Produção: máquina de medição, bancada de inspeção, laminadora, moinho, caçambas, big bag, bancada e carrinho de ferramentas, armário de EPI, extintor, primeiros socorros e escada |
 | `js/world/mobilia.js` | Monta as salas, cria as colisões e registra cada tela de PC como computador clicável |
 | `js/ui/computer.js` | Mira na tela, close-up até o monitor e o SAP sobre a tela |
 | `js/player/avatar.js` | Personagem montado a partir da skin, com animação e o nome acima da cabeça |
@@ -109,6 +121,8 @@ Cada sala é montada a partir de `fabrica-marys-toys-3d/js/config/ti.js` (TI) e 
 | PCP | Estações de Galdino e Valdecir, 2 ilhas, mesa de reunião com painel de indicadores e quadro do plano de produção |
 | Suporte | Balcão de chamados, 8 racks de servidores com LEDs, estações (Letícia Nunes e monitoramento) e bancada de reparo |
 | RH | 4 ilhas com 16 PCs (Neon Gustavo, Gabriel da Rosa e Ana Karolina na primeira), mesa de reunião, arquivos, sofá de espera e quadro |
+| ADM | Mesas do Arthur e do Talles (2 telas cada) no fundo, 6 ilhas com 24 PCs (compras, contas a pagar e a receber, faturamento, fiscal, contabilidade, comercial…), recepção, mesa de reunião com TV do financeiro, arquivos, copiadoras e sofá de espera |
+| Salas da Produção | Ver [Salas da Produção](#salas-da-produção) |
 | Recebimento | Posto da Flávia Luhiza (2 telas) e posto de conferência de NF junto à placa da sala, porta-paletes e pallets chegando pela doca |
 
 Para colocar mais um PC, acrescente na sala um item `{ model: 'workstation', wall: 'W', along: 2, owner: 'Nome', screen: 'sap' }`. Toda tela de estação de trabalho abre o SAP.

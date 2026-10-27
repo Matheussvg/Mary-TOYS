@@ -240,6 +240,11 @@
   const interior = ['mobilia', 'producao'].map((n) => scene.getObjectByName(n)).filter(Boolean);
   const B = MT.LAYOUT.building;
   const nearInside = (p) => p.x > B.x1 - 1 && p.x < B.x2 + 1 && p.z > B.z1 - 7 && p.z < B.z2 + 1;
+  // Lá dentro, cada sala só é desenhada com o jogador a menos de 45 m dela: as mais longe ficam atrás das paredes
+  const salas = (scene.getObjectByName('mobilia') || { children: [] }).children
+    .map((g) => ({ g, a: MT.LAYOUT.areas.find((a) => g.name === 'sala-' + a.id) }))
+    .filter((s) => s.a);
+  const roomDist = ([x1, x2, z1, z2], p) => Math.hypot(Math.max(x1 - p.x, 0, p.x - x2), Math.max(z1 - p.z, 0, p.z - z2));
 
   // ---- laço principal ----
   const clock = new THREE.Clock();
@@ -269,6 +274,7 @@
     }
     const showInterior = player.drone.on || nearInside(player.pos);
     for (const g of interior) g.visible = showInterior;
+    if (showInterior) for (const s of salas) s.g.visible = player.drone.on || roomDist(s.a.rect, player.pos) < 45;
     for (const fn of MT.animators) fn(dt, player, t);
     hud.update();
     if (pc.state !== 'using' || pc.redraw) renderer.render(scene, camera);
