@@ -258,5 +258,5 @@ store.init().then(() => {
       console.error(e);
       if (!res.headersSent) send(res, e.status || 500, { error: e.status ? e.message : 'Erro no servidor' });
     });
-  }).listen(PORT, () => console.log(`Mery's Toys conferência rodando na porta ${PORT} (${process.env.DATABASE_URL ? 'Postgres' : 'data.json'})${HAS_SIM ? ' · simulador em / e SAP em /sap/' : ''}`));
+  }).listen(PORT, () => console.log(`Mery's Toys conferência rodando na porta ${PORT} (${process.env.DATABASE_URL ? 'Postgres' : 'data.json'})${SAP_URL ? ` · só o simulador; SAP em ${SAP_URL}` : HAS_SIM ? ' · simulador em / e SAP em /sap/' : ''}`));
 }).catch(e => { console.error('Falha ao preparar o banco:', e); process.exit(1); });
