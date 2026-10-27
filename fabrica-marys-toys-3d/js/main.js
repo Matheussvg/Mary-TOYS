@@ -65,7 +65,10 @@
   MT.buildExterior(scene);
   MT.buildBuilding(scene);
   MT.buildFacade(scene);
-  MT.buildTI(scene);
+  MT.buildMobilia(scene, MT.TI.rooms.concat(MT.MOBILIA.rooms));
+  // Injetoras do GLB na área de produção; se o modelo não carregar, a fábrica abre sem elas
+  status.textContent = 'Ligando as injetoras…';
+  await MT.buildProducao(scene).catch((e) => console.warn('Injetoras não carregaram:', e));
 
   // Reflexos suaves do céu (IBL) a partir de uma cena pequena com o mesmo degradê
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -162,9 +165,16 @@
 
   // ---- teclas de visão ----
   let roofVisible = true;
+  // Com o telhado no lugar o interior fica todo na sombra dele: as sombras da mobília e das máquinas só são
+  // calculadas com o telhado oculto (tecla T ou vista aérea), o que poupa um desenho inteiro da fábrica por quadro
+  const showRoof = (v) => {
+    MT.roof.visible = v;
+    MT.interiorShadows(scene, !v);
+  };
+  showRoof(true);
   const setRoof = (v) => {
     roofVisible = v;
-    MT.roof.visible = v;
+    showRoof(player.drone.on ? false : v);
   };
   const setDrone = (on) => {
     if (on && document.pointerLockElement) {
@@ -172,7 +182,7 @@
       document.exitPointerLock();
     }
     player.setDrone(on);
-    MT.roof.visible = on ? false : roofVisible;
+    showRoof(on ? false : roofVisible);
     for (const s of MT.signs) s.scale.multiplyScalar(on ? 3 : 1 / 3);
     avatar.setFar(on);
     document.body.classList.toggle('drone', on);
@@ -188,7 +198,6 @@
     }
     if (e.code === 'KeyT') {
       setRoof(!roofVisible);
-      if (!player.drone.on) MT.roof.visible = roofVisible;
       hud.toast(roofVisible ? 'Telhado visível' : 'Telhado oculto (luz do sol entra)');
     } else if (e.code === 'KeyV') {
       setDrone(!player.drone.on);
@@ -222,6 +231,12 @@
     pc.onResize();
   });
 
+  // De fora do prédio não se vê o interior: mobília e máquinas só são desenhadas com o jogador lá dentro,
+  // no pátio das docas (portas abertas) ou na vista aérea
+  const interior = ['mobilia', 'producao'].map((n) => scene.getObjectByName(n)).filter(Boolean);
+  const B = MT.LAYOUT.building;
+  const nearInside = (p) => p.x > B.x1 - 1 && p.x < B.x2 + 1 && p.z > B.z1 - 7 && p.z < B.z2 + 1;
+
   // ---- laço principal ----
   const clock = new THREE.Clock();
   let t = 0;
@@ -247,6 +262,8 @@
       arm.position.set(0.3 + Math.cos(player.bob) * 0.012 * step, -0.3 + Math.abs(Math.sin(player.bob)) * 0.02 * step, -0.34);
       arm.rotation.set(1.25 + Math.sin(player.bob) * 0.05 * step, 0.15, 0.25);
     }
+    const showInterior = player.drone.on || nearInside(player.pos);
+    for (const g of interior) g.visible = showInterior;
     for (const fn of MT.animators) fn(dt, player, t);
     hud.update();
     if (pc.state !== 'using' || pc.redraw) renderer.render(scene, camera);

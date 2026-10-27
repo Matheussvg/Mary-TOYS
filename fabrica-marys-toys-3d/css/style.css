@@ -230,6 +230,7 @@ body.drone #pc-hint, body.pc-mode #pc-hint { display: none; }
   font: 500 16px/1.4 var(--body);
 }
 .pc-boot b { font: 700 34px/1 var(--label); color: #e2c784; }
+.pc-boot small { font-size: 13px; opacity: 0.75; }
 #pc-screen.ready .pc-boot { display: none; }
 @keyframes pc-on {
   from { opacity: 0; filter: brightness(1.8); }

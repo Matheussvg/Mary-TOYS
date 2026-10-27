@@ -308,6 +308,45 @@
       });
     },
 
+    rh(g, w, h) {
+      g.fillStyle = '#faf7f2';
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#8e1b2a';
+      g.fillRect(0, 0, w, 34);
+      font(g, 700, 17, 'label');
+      g.textBaseline = 'middle';
+      g.fillStyle = '#fff';
+      g.fillText('RH · COLABORADORES', 12, 17);
+      const rows = [
+        ['Flávia Luhiza', 'Logística · Recebimento', 'Ativa', SAP.ok],
+        ['Alisson Hellmann', 'Produção · Gerente', 'Ativo', SAP.ok],
+        ['Matheus Galdino', 'PCP', 'Férias 11/11', SAP.gold],
+        ['Henry Gustavo', 'Produção · Metrologia', 'Treinamento', '#2a4b9b'],
+        ['Rayssa Cristiny', 'Comunicação · ADM', 'Ativa', SAP.ok],
+        ['Jônatas Rafael', 'Logística · Estoque', 'Ativo', SAP.ok],
+        ['Pedro Zanella', 'TI · Modelagem 3D', 'Ativo', SAP.ok],
+      ];
+      rows.forEach(([n, a, st, c], i) => {
+        const y = 44 + i * 44;
+        g.fillStyle = '#fff';
+        R(g, 10, y, w - 20, 38, 6);
+        g.fill();
+        g.fillStyle = '#e9dcd0';
+        g.beginPath(); g.arc(32, y + 19, 12, 0, Math.PI * 2); g.fill();
+        font(g, 700, 14);
+        g.fillStyle = '#2b2320';
+        g.fillText(n, 52, y + 13);
+        font(g, 500, 12);
+        g.fillStyle = '#7a6d66';
+        g.fillText(a, 52, y + 28);
+        font(g, 700, 12, 'label');
+        g.textAlign = 'right';
+        g.fillStyle = c;
+        g.fillText(st.toUpperCase(), w - 22, y + 19);
+        g.textAlign = 'left';
+      });
+    },
+
     infra(g, w, h, rnd) {
       g.fillStyle = '#121519';
       g.fillRect(0, 0, w, h);

@@ -1,5 +1,5 @@
 /*
- * Computadores da TI: mirar na tela de um PC mostra a opção de usá-lo; o clique (ou E) faz um
+ * Computadores (TI, RH e Recebimento): mirar na tela de um PC mostra a opção de usá-lo; o clique (ou E) faz um
  * close-up animado até o monitor e o SAP abre exatamente sobre a tela. "Levantar" (ou Esc) volta.
  * O SAP fica num único iframe que continua aberto entre um uso e outro (o login e o rascunho permanecem).
  */
@@ -14,8 +14,9 @@
   const MIN_W = 640, MIN_H = 360; // abaixo disso (celular) o SAP ocupa a janela inteira
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-  // Endereço do SAP: o servidor (sap/server.js) informa em window.MT_SAP_URL; aberto como arquivo, usa a cópia em ../sap/public
-  MT.sapUrl = () => window.MT_SAP_URL || MT.TI.sapUrl || '../sap/public/index.html';
+  // Endereço do SAP: o SAP online de js/config/ti.js (o mesmo para todos); sem ele, o do servidor (sap/server.js)
+  // ou, abrindo o arquivo direto, a cópia em ../sap/public (modo local, sem compartilhar)
+  MT.sapUrl = () => MT.TI.sapUrl || window.MT_SAP_URL || '../sap/public/index.html';
 
   MT.Computer = class {
     constructor(camera, player, dom) {
@@ -57,13 +58,13 @@
       return this.state === 'idle' && !!this.hover && this.player.enabled && !this.player.drone.on;
     }
 
-    // Procura o PC para onde a mira aponta (só na sala da TI em que o jogador está)
+    // Procura o PC para onde a mira aponta (só na sala em que o jogador está)
     hoverCheck() {
       const p = this.player, cam = this.camera;
       let best = null;
       if (p.enabled && !p.drone.on) {
         const a = MT.areaAt(p.pos.x, p.pos.z);
-        if (a && a.dept === 'ti') {
+        if (a) {
           cam.getWorldDirection(this.dir);
           const o = p.aimOrigin(this.o); // em 3ª pessoa a mira passa acima da cabeça do personagem
           let bestAng = Infinity;

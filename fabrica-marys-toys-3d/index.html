@@ -42,12 +42,12 @@
 
   <div id="toast" hidden></div>
 
-  <!-- Computadores da TI: opção ao mirar na tela, SAP no monitor e barra para levantar -->
+  <!-- Computadores: opção ao mirar na tela, SAP no monitor e barra para levantar -->
   <button id="pc-hint" type="button" hidden>
     <kbd>E</kbd><span><b>Clique para acessar o SAP</b><small id="pc-hint-name"></small></span>
   </button>
   <div id="pc-screen" hidden>
-    <div class="pc-boot"><b>✦ Mery’s Toys</b><span>Conectando ao SAP…</span></div>
+    <div class="pc-boot"><b>✦ Mery’s Toys</b><span>Conectando ao SAP online…</span><small>Se o servidor estava parado, o primeiro acesso pode levar até 1 minuto.</small></div>
   </div>
   <div id="pc-bar" hidden>
     <span id="pc-bar-name"></span>
@@ -74,7 +74,7 @@
             <div><dt>Vista aérea</dt><dd>V alterna · arraste gira · roda dá zoom</dd></div>
             <div><dt>Recomeçar</dt><dd>R volta para a calçada</dd></div>
             <div><dt>Câmera</dt><dd>Primeira pessoa · F mostra o seu personagem de fora</dd></div>
-            <div><dt>Computador</dt><dd>Na TI, mire na tela de um PC e clique (ou E) para abrir o SAP</dd></div>
+            <div><dt>Computador</dt><dd>Na TI, no RH ou no Recebimento, mire na tela de um PC e clique (ou E) para abrir o SAP online</dd></div>
           </dl>
           <p class="note">Portas de vidro, docas e cancela da portaria abrem sozinhas quando você chega perto.</p>
           <label id="name-field">
@@ -98,23 +98,30 @@
   <!-- Bibliotecas -->
   <script src="js/lib/three.min.js"></script>
   <script>window.THREE || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+  <script src="js/lib/GLTFLoader.js"></script>
 
   <!-- Dados e núcleo -->
   <script src="js/config/layout.js"></script>
   <script src="js/config/ti.js"></script>
   <script src="js/config/skin.js"></script>
+  <script src="js/config/mobilia.js"></script>
+  <script src="js/config/producao.js"></script>
+  <script src="js/config/fabrica-blocos.glb.js"></script>
   <script src="js/core/textures.js"></script>
   <script src="js/core/builder.js"></script>
 
   <!-- Modelos 3D -->
   <script src="js/models/screens.js"></script>
   <script src="js/models/office.js"></script>
+  <script src="js/models/logistica.js"></script>
+  <script src="js/models/glb.js"></script>
 
   <!-- Mundo -->
   <script src="js/world/exterior.js"></script>
   <script src="js/world/building.js"></script>
   <script src="js/world/facade.js"></script>
-  <script src="js/world/ti.js"></script>
+  <script src="js/world/mobilia.js"></script>
+  <script src="js/world/producao.js"></script>
 
   <!-- Jogador e interface -->
   <script src="js/player/player.js"></script>

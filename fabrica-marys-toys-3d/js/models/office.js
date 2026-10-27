@@ -21,6 +21,7 @@
     blue: MT.mat(0x2a4b9b, { r: 0.9 }),
     blueDark: MT.mat(0x1d3570, { r: 0.9 }),
     red: MT.mat(0xa3161c, { r: 0.6 }),
+    wine: MT.mat(0x8e1b2a, { r: 0.9 }), // tecido das cadeiras da Comunicação
     gold: MT.mat(0xd9a441, { r: 0.35, m: 0.6 }),
     yellow: MT.mat(0xf4c51c, { r: 0.4 }),
     green: MT.mat(0x1f6b3a, { r: 0.5 }),
@@ -152,7 +153,7 @@
     MT.cyl(g, 0.04, 0.04, 0.1, -0.68, DESK_H, -0.25, pick([K.red, K.white, K.blue]), { seg: 12 });
     B(g, 0.21, 0.01, 0.29, -0.55, DESK_H, 0.15, K.paper).rotation.y = 0.2;
     if (v % 3 === 0) brick(g, 0.65, DESK_H, -0.25, pick(TOY()), 2, 2, 0.04);
-    chair(g, (Math.random() - 0.5) * 0.15, 0.72, (Math.random() - 0.5) * 0.5, K.blue);
+    chair(g, (Math.random() - 0.5) * 0.15, 0.72, (Math.random() - 0.5) * 0.5, K[o.chair || 'blue']);
     g.userData.back = d / 2;
     return g;
   });
@@ -164,7 +165,7 @@
     const n = Math.ceil(seats.length / 2), w = 1.6, d = 0.8;
     seats.forEach((s, i) => {
       const side = i < n ? 0 : 1, k = side ? i - n : i;
-      const ws = MT.MODELS.workstation(Object.assign({ variant: i }, s));
+      const ws = MT.MODELS.workstation(Object.assign({ variant: i, chair: o.chair }, s));
       ws.position.set((k - (n - 1) / 2) * w, 0, side ? -d / 2 : d / 2);
       ws.rotation.y = side ? Math.PI : 0;
       g.add(ws);
@@ -184,28 +185,28 @@
     const n = o.chairs || 4;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + Math.PI / 4;
-      chair(g, Math.sin(a) * 0.98, Math.cos(a) * 0.98, a, K.blue);
+      chair(g, Math.sin(a) * 0.98, Math.cos(a) * 0.98, a, K[o.chair || 'blue']);
     }
     B(g, 0.3, 0.01, 0.22, 0.1, 0.75, -0.05, K.paper).rotation.y = 0.4;
     MT.cyl(g, 0.04, 0.04, 0.1, -0.2, 0.75, 0.15, K.red, { seg: 12 });
     return g;
   });
 
-  function longTable(g, w, d, top, n) {
+  function longTable(g, w, d, top, n, fabric) {
     B(g, w, 0.04, d, 0, 0.71, 0, top);
     for (const s of [-1, 1]) B(g, 0.06, 0.71, d - 0.3, s * (w / 2 - 0.3), 0, 0, K.graphite);
     g.userData.colliders.push([-w / 2, w / 2, 0, 0.75, -d / 2, d / 2]);
     const per = Math.ceil(n / 2);
     for (let i = 0; i < n; i++) {
       const side = i < per ? 1 : -1, k = i < per ? i : i - per;
-      chair(g, (k - (per - 1) / 2) * (w / per), side * (d / 2 + 0.45), side > 0 ? 0 : Math.PI, K.blue);
+      chair(g, (k - (per - 1) / 2) * (w / per), side * (d / 2 + 0.45), side > 0 ? 0 : Math.PI, fabric || K.blue);
     }
   }
 
   model('meetingTable', (o) => {
     const g = group();
     const w = o.w || 3.2, d = o.d || 1.2;
-    longTable(g, w, d, K.wood, o.chairs || 6);
+    longTable(g, w, d, K.wood, o.chairs === undefined ? 6 : o.chairs, K[o.chair || 'blue']);
     // notebooks e papéis da reunião
     for (const [x, z, r] of [[-0.9, 0.25, 0.1], [0.8, -0.25, Math.PI - 0.15]]) {
       const nb = new THREE.Group();
@@ -224,7 +225,7 @@
   model('workTable', (o) => {
     const g = group();
     const w = o.w || 3.0, d = o.d || 1.4;
-    longTable(g, w, d, K.white, o.chairs || 4);
+    longTable(g, w, d, K.white, o.chairs === undefined ? 4 : o.chairs);
     for (let i = 0; i < 6; i++) B(g, 0.3, 0.004, 0.21, -1.1 + i * 0.42, 0.75, (Math.random() - 0.5) * 0.6, K.paper).rotation.y = (Math.random() - 0.5) * 0.6;
     TOY().forEach((m, i) => B(g, 0.08, 0.006, 0.12, 0.6 + i * 0.1, 0.754, 0.35, m));
     for (let i = 0; i < 5; i++) brick(g, -0.9 + i * 0.4, 0.75, -0.3, pick(TOY()), 2 + (i % 2), 1 + (i % 2), 0.06);

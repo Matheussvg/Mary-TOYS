@@ -11,9 +11,10 @@
   const MT = (window.MT = window.MT || {});
 
   MT.TI = {
-    // Endereço do SAP aberto nos PCs. Vazio: usa o do servidor (sap/server.js) ou a cópia em ../sap/public.
-    // Para usar o simulador hospedado em outro lugar com o SAP publicado no Render, coloque aqui a URL (ex.: 'https://….onrender.com/sap/').
-    sapUrl: '',
+    // SAP aberto em todos os PCs do simulador: o SAP online no Render, com os dados no Postgres. Assim todo mundo,
+    // em qualquer computador (até abrindo o index.html direto), vê e mexe nos mesmos pedidos.
+    // Vazio: usa o SAP do próprio servidor (sap/server.js) ou, sem servidor, a cópia local em ../sap/public.
+    sapUrl: 'https://merys-toys-conferencia.onrender.com/',
 
     // Distância máxima (m) entre os olhos e a tela para aparecer a opção de usar o PC
     reach: 2.6,

@@ -1,17 +1,24 @@
-/* Ala da TI: monta a mobília de js/config/ti.js com os modelos de js/models/office.js e registra os PCs que abrem o SAP. */
+/*
+ * Mobília das salas (TI em js/config/ti.js; RH, Recebimento e logística em js/config/mobilia.js), feita com os
+ * modelos de js/models/. Cria as colisões e registra cada tela de estação de trabalho como um PC que abre o SAP.
+ */
 (function () {
   const MT = (window.MT = window.MT || {});
 
-  MT.buildTI = function (scene) {
+  MT.buildMobilia = function (scene, rooms) {
     const L = MT.LAYOUT, F = L.F, B = L.building;
     const root = new THREE.Group();
-    root.name = 'ti';
+    root.name = 'mobilia';
     scene.add(root);
     MT.computers = [];
 
-    for (const room of MT.TI.rooms) {
+    for (const room of rooms) {
       const area = L.areas.find((a) => a.id === room.area);
       if (!area) continue;
+      // um grupo por sala: a mobília de cada sala é fundida separada, e a sala que não aparece na tela não é desenhada
+      const roomGroup = new THREE.Group();
+      roomGroup.name = 'sala-' + area.id;
+      root.add(roomGroup);
       const [x1, x2, z1, z2] = area.rect;
       // Faces internas das paredes: as do perímetro têm 0,5 m de espessura, as internas 0,2 m
       const r = {
@@ -21,10 +28,10 @@
       };
       for (const it of room.items) {
         const make = MT.MODELS[it.model];
-        if (!make) { console.warn('Modelo desconhecido na TI:', it.model); continue; }
+        if (!make) { console.warn('Modelo desconhecido:', it.model); continue; }
         const g = make(it);
         place(g, it, r, F);
-        root.add(g);
+        roomGroup.add(g);
       }
     }
 
@@ -42,7 +49,7 @@
       }
       if (o.userData.pc) register(o);
     });
-    MT.bake(root);
+    for (const roomGroup of root.children.slice()) MT.bake(roomGroup);
     return root;
   };
 

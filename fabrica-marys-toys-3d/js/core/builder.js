@@ -144,27 +144,45 @@
     walk(root);
     for (const o of baked) o.parent.remove(o);
     for (const b of buckets.values()) {
-      let n = 0;
-      for (const g of b.geos) n += g.attributes.position.count;
-      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
-      let k = 0;
-      for (const g of b.geos) {
-        pos.set(g.attributes.position.array, k * 3);
-        if (g.attributes.normal) nor.set(g.attributes.normal.array, k * 3);
-        if (g.attributes.uv) uv.set(g.attributes.uv.array, k * 2);
-        k += g.attributes.position.count;
-      }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-      geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-      geo.computeBoundingSphere();
-      const mesh = new THREE.Mesh(geo, b.mat);
+      const mesh = new THREE.Mesh(MT.mergeGeometries(b.geos), b.mat);
       mesh.castShadow = b.cast;
       mesh.receiveShadow = b.receive;
       root.add(mesh);
     }
     return root;
+  };
+
+  // Liga ou desliga as sombras da mobília e das máquinas (cada malha lembra se projetava sombra)
+  MT.interiorShadows = function (scene, on) {
+    for (const name of ['mobilia', 'producao']) {
+      const g = scene.getObjectByName(name);
+      if (!g) continue;
+      g.traverse((o) => {
+        if (!o.isMesh) return;
+        if (o.userData.cast === undefined) o.userData.cast = o.castShadow;
+        o.castShadow = on && o.userData.cast;
+      });
+    }
+  };
+
+  // Junta geometrias sem índice (posição, normal e uv) numa só
+  MT.mergeGeometries = function (geos) {
+    let n = 0;
+    for (const g of geos) n += g.attributes.position.count;
+    const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+    let k = 0;
+    for (const g of geos) {
+      pos.set(g.attributes.position.array, k * 3);
+      if (g.attributes.normal) nor.set(g.attributes.normal.array, k * 3);
+      if (g.attributes.uv) uv.set(g.attributes.uv.array, k * 2);
+      k += g.attributes.position.count;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    geo.computeBoundingSphere();
+    return geo;
   };
 
   // Escada: degraus como caixas (sobe na direção `dir`)
